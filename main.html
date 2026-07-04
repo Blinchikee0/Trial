@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microcontrollers &amp; Arduino — Trial Lesson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0d1c3d; --navy2:#14295b; --ink:#16233f; --ink-soft:#33415e;
+    --teal:#0f9d94; --teal-d:#0b7a72; --teal-l:#e4f5f3;
+    --amber:#f5a623; --amber-d:#cf8410; --amber-l:#fdf1dc;
+    --paper:#eef4f8; --line:#d3e2ec; --card:#ffffff; --muted:#5d6b85;
+    --green:#1f9d67; --green-l:#e3f6ec; --red:#df5757; --red-l:#fbe7e7;
+    --shadow:0 10px 30px -12px rgba(13,28,61,.28);
+    --shadow-sm:0 4px 14px -6px rgba(13,28,61,.22);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:var(--paper);
+    background-image:
+      linear-gradient(rgba(15,157,148,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,157,148,.06) 1px, transparent 1px);
+    background-size:26px 26px;
+    min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk','Inter',sans-serif}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .id{font-style:italic;color:var(--teal-d);font-weight:500}
+
+  /* ===== top bar ===== */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;gap:14px;
+    padding:12px clamp(14px,4vw,40px);
+    background:rgba(238,244,248,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-family:'Space Grotesk';color:var(--navy);font-size:15px;white-space:nowrap}
+  .brand .chip{width:30px;height:30px;border-radius:9px;background:var(--teal);display:grid;place-items:center;flex:none;box-shadow:var(--shadow-sm)}
+  .brand .chip svg{width:17px;height:17px}
+  .progress-wrap{flex:1;height:8px;background:#dbe7ef;border-radius:99px;overflow:hidden;min-width:60px}
+  .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--amber));border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+  .score-chip{
+    display:flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
+    padding:8px 14px;border-radius:99px;font-weight:700;font-size:14px;white-space:nowrap;
+    box-shadow:var(--shadow-sm);position:relative
+  }
+  .score-chip .star{color:var(--amber)}
+  .score-chip.bump{animation:bump .5s ease}
+  @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.14)}100%{transform:scale(1)}}
+  .float-pts{position:absolute;top:-8px;right:12px;color:var(--green);font-weight:800;font-size:15px;
+    animation:floatUp 1s ease forwards;pointer-events:none;font-family:'Space Grotesk'}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+
+  /* ===== stage ===== */
+  .stage{max-width:1000px;margin:0 auto;padding:104px clamp(14px,4vw,34px) 118px;min-height:100vh;display:flex;align-items:center}
+  .slide{display:none;width:100%;animation:slideIn .5s cubic-bezier(.2,.7,.2,1)}
+  .slide.active{display:block}
+  @keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  .eyebrow{font-family:'Space Grotesk';font-weight:600;letter-spacing:.16em;font-size:12px;text-transform:uppercase;color:var(--teal-d);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:99px;background:var(--amber)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:clamp(22px,4vw,40px)}
+
+  .headicon{width:60px;height:60px;border-radius:16px;background:var(--teal);display:grid;place-items:center;box-shadow:var(--shadow-sm);margin-bottom:18px}
+  .headicon svg{width:32px;height:32px}
+  .headicon.amber{background:var(--amber)}
+  .headicon.navy{background:var(--navy)}
+
+  h2.title{font-size:clamp(26px,4.6vw,42px);font-weight:700;color:var(--ink);line-height:1.08;letter-spacing:-.01em}
+  .title-id{font-size:clamp(16px,2.4vw,20px);margin-top:6px;margin-bottom:6px}
+  .lead{color:var(--muted);font-size:clamp(15px,2vw,17px);max-width:60ch}
+
+  .points{list-style:none;display:grid;gap:12px;margin-top:22px}
+  .points li{display:flex;gap:13px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .points li .tick{flex:none;width:26px;height:26px;border-radius:8px;background:var(--teal-l);color:var(--teal-d);display:grid;place-items:center;margin-top:1px}
+  .points li .tick svg{width:15px;height:15px}
+  .points li b{color:var(--ink);font-weight:600;display:block}
+  .points li .id{font-size:14px;display:block;margin-top:1px}
+
+  .split{display:grid;grid-template-columns:1fr;gap:26px;align-items:center}
+  @media(min-width:760px){.split{grid-template-columns:1.05fr .95fr}}
+  .visual{display:grid;place-items:center;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:26px;min-height:230px}
+  .visual svg{max-width:100%;height:auto}
+
+  /* ===== cover ===== */
+  .cover{background:radial-gradient(120% 120% at 85% 0%, #1a3a7a 0%, var(--navy) 55%);color:#fff;border:none;position:relative;overflow:hidden;border-radius:26px;padding:clamp(30px,6vw,64px)}
+  .cover:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:30px 30px;opacity:.5}
+  .cover>*{position:relative;z-index:1}
+  .cover .blob{position:absolute;border-radius:50%;filter:blur(2px);z-index:0}
+  .cover .b1{width:280px;height:280px;background:rgba(15,157,148,.22);top:-90px;right:-60px}
+  .cover .b2{width:200px;height:200px;background:rgba(245,166,35,.16);bottom:-70px;left:-40px}
+  .cover .eyebrow{color:var(--amber)}
+  .cover h1{font-size:clamp(32px,6vw,58px);line-height:1.02;font-weight:700;letter-spacing:-.02em}
+  .cover .h1-id{color:var(--amber);font-size:clamp(18px,3vw,26px);margin-top:8px;font-style:italic;font-weight:600}
+  .cover p{color:#c9d6ee;max-width:56ch;margin-top:20px;font-size:clamp(15px,2vw,17px)}
+  .cover p .id{color:#8fe6dd}
+  .cover .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px;align-items:center}
+  .meta-pill{display:inline-flex;gap:8px;align-items:center;color:#9fb4d8;font-size:13px;border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:7px 14px}
+
+  /* ===== buttons ===== */
+  .btn{font-family:'Space Grotesk';font-weight:600;font-size:16px;border:none;cursor:pointer;border-radius:13px;padding:14px 26px;display:inline-flex;align-items:center;gap:10px;transition:transform .15s ease,box-shadow .15s ease,background .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--amber);color:#3a2600;box-shadow:0 6px 18px -6px rgba(245,166,35,.6)}
+  .btn-primary:hover{background:var(--amber-d)}
+  .btn-teal{background:var(--teal);color:#fff;box-shadow:0 6px 18px -8px rgba(15,157,148,.6)}
+  .btn-teal:hover{background:var(--teal-d)}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+  .btn-ghost:hover{background:#fff;border-color:#b9cdda}
+  .btn svg{width:18px;height:18px}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
+
+  /* ===== quiz ===== */
+  .quiz .qnum{font-family:'Space Grotesk';font-weight:700;color:var(--amber-d);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+  .quiz h2{font-size:clamp(21px,3.4vw,30px);margin-top:6px;line-height:1.15;color:var(--ink)}
+  .quiz .q-id{margin:6px 0 4px;font-size:16px}
+  .opts{display:grid;gap:12px;margin-top:22px}
+  .opt{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:15px 17px;cursor:pointer;font-size:16px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:13px;transition:border-color .15s,background .15s,transform .1s;font-family:inherit}
+  .opt:hover:not(.locked){border-color:var(--teal);background:var(--teal-l)}
+  .opt .key{flex:none;width:30px;height:30px;border-radius:9px;background:var(--paper);color:var(--ink-soft);display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700}
+  .opt .otext .id{display:block;font-size:13.5px;font-weight:500;margin-top:1px}
+  .opt.correct{border-color:var(--green);background:var(--green-l)}
+  .opt.correct .key{background:var(--green);color:#fff}
+  .opt.wrong{border-color:var(--red);background:var(--red-l)}
+  .opt.wrong .key{background:var(--red);color:#fff}
+  .opt.locked{cursor:default}
+  .opt.dim{opacity:.5}
+  .feedback{margin-top:18px;border-radius:14px;padding:15px 18px;display:none;align-items:flex-start;gap:12px;font-size:15px}
+  .feedback.show{display:flex;animation:slideIn .3s ease}
+  .feedback.ok{background:var(--green-l);border:1px solid #b7e6cd}
+  .feedback.no{background:var(--amber-l);border:1px solid #f2d9a4}
+  .feedback .fi{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff}
+  .feedback.ok .fi{background:var(--green)}
+  .feedback.no .fi{background:var(--amber-d)}
+  .feedback b{display:block;color:var(--ink)}
+  .feedback .id{font-size:13.5px}
+
+  /* ===== code block ===== */
+  .code{background:#0a1329;border-radius:16px;padding:22px 22px;overflow:auto;box-shadow:var(--shadow)}
+  .code .fname{color:#6d7fa8;font-size:13px;margin-bottom:12px;font-family:'JetBrains Mono'}
+  .code pre{font-family:'JetBrains Mono',monospace;font-size:14.5px;line-height:1.85;color:#e6edf3}
+  .code .kw{color:#5fa8ff}.code .fn{color:#8fd6ce}.code .num{color:#f7b955}.code .cm{color:#6a8a63}.code .con{color:#c792ea}
+
+  /* ===== circuit interactive ===== */
+  .circuit-panel{display:grid;grid-template-columns:1fr;gap:22px;align-items:center}
+  @media(min-width:780px){.circuit-panel{grid-template-columns:1.1fr .9fr}}
+  .circuit-stage{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px;text-align:center}
+  .status-tag{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-family:'Space Grotesk';padding:7px 16px;border-radius:99px;font-size:14px;margin-top:6px}
+  .status-tag.off{background:var(--red-l);color:var(--red)}
+  .status-tag.on{background:var(--green-l);color:var(--green)}
+  .hint{color:var(--muted);font-size:14px;margin-top:12px}
+
+  /* ===== results ===== */
+  .results{background:radial-gradient(120% 120% at 15% 0%, #1a3a7a 0%, var(--navy) 55%);color:#fff;border:none;border-radius:26px;padding:clamp(30px,6vw,58px);text-align:center;position:relative;overflow:hidden}
+  .results:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:30px 30px;opacity:.5}
+  .results>*{position:relative;z-index:1}
+  .results h2{font-size:clamp(26px,5vw,42px)}
+  .ring-wrap{display:grid;place-items:center;margin:22px 0}
+  .ring{position:relative;width:190px;height:190px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .rc{transition:stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1)}
+  .ring .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .ring .big{font-family:'Space Grotesk';font-weight:700;font-size:44px;line-height:1;color:#fff}
+  .ring .sub{color:#9fe6dd;font-size:13px;margin-top:4px;font-weight:600}
+  .level{display:inline-flex;gap:9px;align-items:center;background:var(--amber);color:#3a2600;font-family:'Space Grotesk';font-weight:700;padding:9px 20px;border-radius:99px;font-size:17px;margin-top:4px}
+  .res-line{color:#c9d6ee;max-width:52ch;margin:16px auto 0}
+  .res-line .id{color:#8fe6dd}
+  .recap{display:grid;gap:8px;max-width:460px;margin:24px auto 0;text-align:left}
+  .recap div{display:flex;gap:11px;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 14px;font-size:14px}
+  .recap svg{flex:none;width:18px;height:18px}
+
+  /* ===== nav ===== */
+  .nav{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px clamp(14px,4vw,40px);background:rgba(238,244,248,.9);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .counter{font-family:'Space Grotesk';font-weight:600;color:var(--muted);font-size:14px}
+  .counter b{color:var(--ink)}
+  .nav .spacer{flex:1}
+  @media(max-width:560px){
+    .btn{padding:12px 18px;font-size:15px}
+    .brand span.full{display:none}
+  }
+  .kbd-hint{position:fixed;bottom:70px;right:16px;font-size:12px;color:var(--muted);z-index:40;background:rgba(255,255,255,.7);padding:4px 10px;border-radius:8px;border:1px solid var(--line)}
+  @media(max-width:700px){.kbd-hint{display:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+    </span>
+    <span class="full">Arduino Lab</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  <div class="score-chip" id="scoreChip">
+    <span class="star">★</span><span id="scoreVal">0</span>
+  </div>
+</div>
+
+<div class="stage">
+  <div id="slides"></div>
+</div>
+
+<div class="nav">
+  <button class="btn btn-ghost" id="backBtn" onclick="go(-1)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    Back
+  </button>
+  <div class="counter"><b id="curNum">1</b> / <span id="totNum">1</span></div>
+  <div class="spacer"></div>
+  <button class="btn btn-teal" id="nextBtn" onclick="go(1)">
+    Next
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</div>
+<div class="kbd-hint">← → arrow keys to navigate</div>
+
+<script>
+/* ============ ICONS ============ */
+const I = {
+  chip:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>',
+  board:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="8" y="9" width="8" height="5" rx="1"/><path d="M6 4v2M10 4v2M14 4v2M18 4v2"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>',
+  wave:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-7 6 14 3-7h4"/></svg>',
+  bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>',
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
+  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0z"/></svg>',
+  code:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>',
+  tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  toggle:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="16" cy="12" r="3" fill="#fff"/></svg>',
+  slider:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.4" fill="#0f9d94"/><circle cx="15" cy="12" r="2.4" fill="#0f9d94"/><circle cx="7" cy="18" r="2.4" fill="#0f9d94"/></svg>',
+  tickTeal:'<svg viewBox="0 0 24 24" fill="none" stroke="#5fe0d4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+};
+
+/* ============ VISUAL SVGs ============ */
+const V = {
+  chip:`<svg viewBox="0 0 200 160" width="220"><rect x="60" y="40" width="80" height="80" rx="8" fill="#0d1c3d"/><rect x="78" y="58" width="44" height="44" rx="5" fill="#0f9d94"/>${[0,1,2,3].map(i=>`<rect x="${72+i*16}" y="26" width="7" height="14" rx="2" fill="#8896b0"/><rect x="${72+i*16}" y="120" width="7" height="14" rx="2" fill="#8896b0"/>`).join('')}${[0,1,2,3].map(i=>`<rect x="46" y="${58+i*13}" width="14" height="7" rx="2" fill="#8896b0"/><rect x="140" y="${58+i*13}" width="14" height="7" rx="2" fill="#8896b0"/>`).join('')}</svg>`,
+  board:`<svg viewBox="0 0 260 170" width="260"><rect x="20" y="30" width="220" height="110" rx="10" fill="#0b7a72"/><rect x="6" y="44" width="24" height="30" rx="3" fill="#b8bec9"/><rect x="10" y="98" width="18" height="26" rx="3" fill="#0d1c3d"/><rect x="120" y="70" width="60" height="26" rx="3" fill="#0d1c3d"/><text x="150" y="87" fill="#8fe6dd" font-size="11" font-family="monospace" text-anchor="middle" font-weight="700">CHIP</text><rect x="45" y="34" width="150" height="10" rx="2" fill="#0d1c3d"/><rect x="45" y="126" width="160" height="10" rx="2" fill="#0d1c3d"/><text x="130" y="60" fill="#d7f5f1" font-size="13" font-family="'Space Grotesk',sans-serif" font-weight="700" text-anchor="middle" font-style="italic">ARDUINO UNO</text></svg>`,
+  resistor:`<svg viewBox="0 0 260 90" width="250"><line x1="10" y1="45" x2="80" y2="45" stroke="#16233f" stroke-width="4"/><rect x="80" y="26" width="100" height="38" rx="7" fill="#d9a066" stroke="#8a5a2b" stroke-width="2"/><rect x="94" y="26" width="7" height="38" fill="#7a3b2e"/><rect x="110" y="26" width="7" height="38" fill="#1a1a1a"/><rect x="126" y="26" width="7" height="38" fill="#c0392b"/><rect x="150" y="26" width="7" height="38" fill="#c9a227"/><line x1="180" y1="45" x2="250" y2="45" stroke="#16233f" stroke-width="4"/></svg>`,
+  led:`<svg viewBox="0 0 160 180" width="150"><circle cx="80" cy="60" r="42" fill="#df5757" stroke="#9e2b2a" stroke-width="3"/><circle cx="66" cy="46" r="12" fill="#ffffff" opacity=".5"/><line x1="66" y1="100" x2="66" y2="165" stroke="#9aa0ac" stroke-width="6" stroke-linecap="round"/><line x1="94" y1="100" x2="94" y2="140" stroke="#9aa0ac" stroke-width="6" stroke-linecap="round"/><text x="102" y="120" fill="#df5757" font-size="24" font-weight="800" font-family="sans-serif">+</text><text x="48" y="160" fill="#16233f" font-size="26" font-weight="800" font-family="sans-serif">–</text></svg>`,
+  breadboard:`<svg viewBox="0 0 260 150" width="250"><rect x="10" y="10" width="240" height="130" rx="10" fill="#eceff4" stroke="#c7ced8" stroke-width="2"/>${Array.from({length:6}).map((_,r)=>Array.from({length:11}).map((_,c)=>`<circle cx="${30+c*20}" cy="${30+r*18}" r="4.5" fill="#9aa6bc"/>`).join('')).join('')}<rect x="82" y="20" width="16" height="118" rx="5" fill="#0f9d94" opacity=".28" stroke="#0f9d94" stroke-width="2"/></svg>`,
+};
+
+/* ============ SLIDE DATA ============ */
+const slides = [
+  { type:'cover' },
+
+  { type:'content', icon:'chip', kicker:'Lesson 1 · Dasar',
+    title:'What is a microcontroller?', titleId:'Apa itu mikrokontroler?',
+    visual:V.chip,
+    lead:{en:'A tiny computer on a single chip — smaller than a coin, but it can think and control things.',
+          id:'Komputer mungil dalam satu chip — lebih kecil dari koin, tapi bisa berpikir dan mengendalikan.'},
+    points:[
+      ['It runs a program you give it','Ia menjalankan program yang kamu beri'],
+      ['It reads inputs — buttons, sensors, light','Ia membaca input — tombol, sensor, cahaya'],
+      ['It controls outputs — LEDs, motors, sound','Ia mengendalikan output — LED, motor, suara'],
+    ]},
+
+  { type:'content', icon:'board',
+    kicker:'Lesson 2 · Alat', title:'What is Arduino?', titleId:'Apa itu Arduino?',
+    visual:V.board,
+    lead:{en:'A friendly board that makes the microcontroller easy to use.',
+          id:'Papan ramah yang membuat mikrokontroler mudah dipakai.'},
+    points:[
+      ['Easy to connect — one USB cable','Mudah dihubungkan — satu kabel USB'],
+      ['Easy to program — write simple code','Mudah diprogram — tulis kode sederhana'],
+      ['Easy to build — no soldering needed','Mudah dirakit — tanpa menyolder'],
+    ]},
+
+  { type:'circuit' },
+
+  { type:'quiz', qnum:'Quiz 1',
+    q:{en:'Electricity flows only when the circuit is…', id:'Listrik mengalir hanya saat rangkaian…'},
+    opts:[
+      {en:'Closed (a complete loop)', id:'Tertutup (lingkaran lengkap)', correct:true},
+      {en:'Open (broken)', id:'Terbuka (terputus)'},
+      {en:'Painted a color', id:'Dicat warna'},
+    ],
+    exp:{en:'A closed loop lets current flow all the way around.', id:'Lingkaran tertutup membuat arus mengalir penuh.'}},
+
+  { type:'content', icon:'wave',
+    kicker:'Lesson 3 · Komponen', title:'The resistor', titleId:'Resistor',
+    visual:V.resistor,
+    lead:{en:'A resistor limits how much current flows, protecting your parts.',
+          id:'Resistor membatasi arus yang mengalir, melindungi komponen.'},
+    points:[
+      ['Without it, an LED can burn out instantly','Tanpanya, LED bisa langsung terbakar'],
+      ['Colored bands show its value in ohms (Ω)','Pita warna menunjukkan nilainya dalam ohm (Ω)'],
+      ['Bigger ohms = smaller current','Ohm lebih besar = arus lebih kecil'],
+    ]},
+
+  { type:'content', icon:'bulb', ic:'amber',
+    kicker:'Lesson 4 · Komponen', title:'The LED — light', titleId:'LED — si lampu',
+    visual:V.led,
+    lead:{en:'An LED turns electricity into light. It has direction: a + and a – leg.',
+          id:'LED mengubah listrik jadi cahaya. Ia punya arah: kaki + dan –.'},
+    points:[
+      ['Long leg = plus (+)','Kaki panjang = positif (+)'],
+      ['Short leg = minus (–)','Kaki pendek = negatif (–)'],
+      ['Connected backwards, it will not light','Jika terbalik, ia tidak menyala'],
+    ]},
+
+  { type:'quiz', qnum:'Quiz 2',
+    q:{en:'Which part protects the LED from too much current?', id:'Komponen apa yang melindungi LED dari arus berlebih?'},
+    opts:[
+      {en:'Resistor', id:'Resistor', correct:true},
+      {en:'Battery', id:'Baterai'},
+      {en:'Wire', id:'Kabel'},
+    ],
+    exp:{en:'The resistor limits the current so the LED stays safe.', id:'Resistor membatasi arus agar LED tetap aman.'}},
+
+  { type:'quiz', qnum:'Quiz 3',
+    q:{en:'The long leg of an LED is the…', id:'Kaki panjang LED adalah…'},
+    opts:[
+      {en:'Plus (+)', id:'Positif (+)', correct:true},
+      {en:'Minus (–)', id:'Negatif (–)'},
+      {en:'Neither', id:'Bukan keduanya'},
+    ],
+    exp:{en:'Long leg = +, short leg = –. Direction matters!', id:'Kaki panjang = +, pendek = –. Arah itu penting!'}},
+
+  { type:'content', icon:'grid',
+    kicker:'Lesson 5 · Alat', title:'The breadboard', titleId:'Papan breadboard',
+    visual:V.breadboard,
+    lead:{en:'Build circuits by pushing wires into holes — no soldering.',
+          id:'Rakit rangkaian dengan menancapkan kabel ke lubang — tanpa solder.'},
+    points:[
+      ['Holes in the same column are connected inside','Lubang di kolom sama terhubung di dalam'],
+      ['Reuse it again for new projects','Pakai ulang untuk proyek baru'],
+      ['Perfect for testing ideas quickly & safely','Cocok untuk menguji ide cepat & aman'],
+    ]},
+
+  { type:'content', icon:'plug', pinGrid:true,
+    kicker:'Lesson 6 · Pin', title:'The 4 pin families', titleId:'4 keluarga pin',
+    lead:{en:'Pins are the metal legs where we connect wires. There are four kinds.',
+          id:'Pin adalah kaki logam tempat menyambung kabel. Ada empat jenis.'}},
+
+  { type:'quiz', qnum:'Quiz 4',
+    q:{en:'Which pins give electricity to your parts?', id:'Pin mana yang memberi listrik ke komponen?'},
+    opts:[
+      {en:'Power pins (5V, 3.3V, GND)', id:'Pin daya (5V, 3,3V, GND)', correct:true},
+      {en:'Analog pins (A0–A5)', id:'Pin analog (A0–A5)'},
+      {en:'PWM pins (~)', id:'Pin PWM (~)'},
+    ],
+    exp:{en:'Power pins supply electricity; every loop returns to GND.', id:'Pin daya memberi listrik; setiap rangkaian kembali ke GND.'}},
+
+  { type:'code' },
+
+  { type:'quiz', qnum:'Quiz 5',
+    q:{en:'Which function repeats over and over, forever?', id:'Fungsi mana yang berulang terus, selamanya?'},
+    opts:[
+      {en:'loop()', id:'loop()', correct:true},
+      {en:'setup()', id:'setup()'},
+      {en:'delay()', id:'delay()'},
+    ],
+    exp:{en:'setup() runs once; loop() runs again and again.', id:'setup() sekali; loop() berjalan berulang-ulang.'}},
+
+  { type:'quiz', qnum:'Quiz 6',
+    q:{en:'What does digitalWrite(13, HIGH) do?', id:'Apa yang dilakukan digitalWrite(13, HIGH)?'},
+    opts:[
+      {en:'Turns pin 13 ON', id:'Menyalakan pin 13', correct:true},
+      {en:'Turns pin 13 OFF', id:'Mematikan pin 13'},
+      {en:'Reads pin 13', id:'Membaca pin 13'},
+    ],
+    exp:{en:'HIGH = on, LOW = off.', id:'HIGH = nyala, LOW = mati.'}},
+
+  { type:'wiring' },
+
+  { type:'quiz', qnum:'Quiz 7',
+    q:{en:'Correct wiring order from pin 13:', id:'Urutan perakitan yang benar dari pin 13:'},
+    opts:[
+      {en:'Pin 13 → resistor → LED → GND', id:'Pin 13 → resistor → LED → GND', correct:true},
+      {en:'Pin 13 → LED → GND (no resistor)', id:'Pin 13 → LED → GND (tanpa resistor)'},
+      {en:'Pin 13 → GND → LED', id:'Pin 13 → GND → LED'},
+    ],
+    exp:{en:'Always place the resistor before the LED.', id:'Selalu pasang resistor sebelum LED.'}},
+
+  { type:'results' },
+];
+
+/* ============ STATE ============ */
+let cur = 0;
+let score = 0;
+const answered = {};
+const attempts = {};
+let circuitDone = false;
+const TOTAL_Q = slides.filter(s=>s.type==='quiz').length;
+const MAX = TOTAL_Q*100 + 100;
+
+/* ============ RENDER HELPERS ============ */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+
+function pointsList(arr){
+  return `<ul class="points">${arr.map(([en,id])=>`<li><span class="tick">${I.tick}</span><span><b>${en}</b><span class="id">${id}</span></span></li>`).join('')}</ul>`;
+}
+
+function renderCover(){
+  return `<section class="slide"><div class="cover">
+    <div class="blob b1"></div><div class="blob b2"></div>
+    <div class="eyebrow"><span class="dot"></span>Trial Lesson · Pelajaran Percobaan</div>
+    <h1>Microcontrollers<br>&amp; Arduino</h1>
+    <div class="h1-id">Mikrokontroler &amp; Arduino</div>
+    <p>Learn electronics and coding from zero. Build your first circuit and earn points along the way.
+       <br><span class="id">Belajar elektronika dan koding dari nol. Rakit rangkaian pertamamu dan kumpulkan poin.</span></p>
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="go(1)">Start lesson · Mulai ${I.arrow}</button>
+      <span class="meta-pill">7 quizzes · 1 build task</span>
+    </div>
+  </div></section>`;
+}
+
+function pinFamilies(){
+  const fam = [
+    [I.plug,'Power pins','Pin daya','Give electricity to your parts.','Memberi listrik ke komponen.'],
+    [I.toggle,'Digital pins','Pin digital','ON or OFF — like a switch.','HIDUP atau MATI — seperti saklar.'],
+    [I.slider,'Analog pins','Pin analog','Read values from sensors.','Membaca nilai dari sensor.'],
+    [I.wave,'PWM pins (~)','Pin PWM (~)','Dim & fade — fake analog.','Redup & pudar — analog palsu.'],
+  ];
+  return `<div class="points" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+    ${fam.map(f=>`<li style="flex-direction:column;align-items:flex-start;gap:8px">
+      <span class="tick" style="background:var(--teal);width:38px;height:38px;border-radius:11px">${f[0]}</span>
+      <span><b>${f[1]}</b><span class="id">${f[2]}</span></span>
+      <span style="font-size:13.5px;color:var(--muted)">${f[3]}<br><span class="id" style="font-size:12.5px">${f[4]}</span></span>
+    </li>`).join('')}
+  </div>`;
+}
+
+function renderContent(s){
+  const vis = s.visual ? `<div class="visual">${s.visual}</div>` : '';
+  if(s.pinGrid){
+    return `<section class="slide"><div class="card">
+      <div class="headicon ${s.ic||''}">${I[s.icon]}</div>
+      <div class="eyebrow"><span class="dot"></span>${s.kicker}</div>
+      <h2 class="title">${s.title}</h2><div class="title-id id">${s.titleId}</div>
+      <p class="lead">${s.lead.en} <span class="id">/ ${s.lead.id}</span></p>
+      ${pinFamilies()}
+    </div></section>`;
+  }
+  return `<section class="slide"><div class="card"><div class="split">
+      <div>
+        <div class="headicon ${s.ic||''}">${I[s.icon]}</div>
+        <div class="eyebrow"><span class="dot"></span>${s.kicker}</div>
+        <h2 class="title">${s.title}</h2><div class="title-id id">${s.titleId}</div>
+        <p class="lead">${s.lead.en} <span class="id">/ ${s.lead.id}</span></p>
+        ${pointsList(s.points)}
+      </div>
+      ${vis}
+    </div></div></section>`;
+}
+
+function renderCircuit(){
+  return `<section class="slide"><div class="card">
+    <div class="headicon">${I.bolt}</div>
+    <div class="eyebrow"><span class="dot"></span>Build Task · Tugas Praktik</div>
+    <h2 class="title">Close the circuit</h2><div class="title-id id">Tutup rangkaian</div>
+    <p class="lead">Electricity flows only in a complete loop. Flip the switch to close it and light the bulb.
+       <span class="id">/ Listrik hanya mengalir dalam lingkaran lengkap. Tekan saklar untuk menutupnya.</span></p>
+    <div class="circuit-panel" style="margin-top:20px">
+      <div class="circuit-stage">
+        <svg id="circSvg" viewBox="0 0 340 220" width="100%" style="max-width:420px">
+          <rect x="40" y="120" width="70" height="60" rx="8" fill="#0d1c3d"/>
+          <text x="75" y="155" fill="#8fe6dd" font-size="13" font-weight="700" font-family="monospace" text-anchor="middle">BATT</text>
+          <line x1="75" y1="120" x2="75" y2="50" stroke="#16233f" stroke-width="5"/>
+          <line x1="75" y1="50" x2="250" y2="50" stroke="#16233f" stroke-width="5"/>
+          <line x1="250" y1="50" x2="250" y2="78" stroke="#16233f" stroke-width="5"/>
+          <circle id="bulb" cx="250" cy="110" r="32" fill="#d6dce6" stroke="#aeb6c4" stroke-width="4"/>
+          <path id="bulbGlow" d="M250 92 v36 M234 110 h32" stroke="#b98d00" stroke-width="4" stroke-linecap="round" opacity="0"/>
+          <line x1="250" y1="142" x2="250" y2="180" stroke="#16233f" stroke-width="5"/>
+          <line x1="250" y1="180" x2="110" y2="180" stroke="#16233f" stroke-width="5"/>
+          <circle cx="110" cy="180" r="5" fill="#16233f"/>
+          <line id="swArm" x1="110" y1="180" x2="82" y2="158" stroke="#df5757" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="75" cy="180" r="5" fill="#16233f"/>
+        </svg>
+        <div><span class="status-tag off" id="circStatus">Circuit OPEN · Terbuka</span></div>
+        <button class="btn btn-teal" style="margin-top:14px" id="switchBtn" onclick="toggleCircuit()">${I.toggle} Flip the switch · Tekan saklar</button>
+        <div class="hint" id="circHint">Tap the button to close the loop · Tekan untuk menutup rangkaian</div>
+      </div>
+      <div>
+        ${pointsList([
+          ['Battery pushes the electricity','Baterai mendorong listrik'],
+          ['The wire carries it in a loop','Kabel membawanya berputar'],
+          ['A closed loop = the bulb lights up','Lingkaran tertutup = lampu menyala'],
+        ])}
+      </div>
+    </div>
+  </div></section>`;
+}
+
+function renderQuiz(s,idx){
+  return `<section class="slide"><div class="card quiz" data-idx="${idx}">
+    <div class="qnum">${s.qnum} · Kuis</div>
+    <h2>${s.q.en}</h2><div class="q-id id">${s.q.id}</div>
+    <div class="opts">
+      ${s.opts.map((o,i)=>`<button class="opt" onclick="answer(${idx},${i},this)" data-correct="${!!o.correct}">
+        <span class="key">${String.fromCharCode(65+i)}</span>
+        <span class="otext">${o.en}<span class="id">${o.id}</span></span>
+      </button>`).join('')}
+    </div>
+    <div class="feedback" id="fb${idx}">
+      <span class="fi"></span>
+      <span><b class="fbtitle"></b><span class="id fbid">${s.exp.id}</span></span>
+    </div>
+  </div></section>`;
+}
+
+function renderCode(){
+  return `<section class="slide"><div class="card">
+    <div class="split">
+      <div>
+        <div class="headicon navy">${I.code}</div>
+        <div class="eyebrow"><span class="dot"></span>Lesson 7 · Koding</div>
+        <h2 class="title">Your first program: Blink</h2>
+        <div class="title-id id">Program pertamamu: Blink (kedip)</div>
+        <p class="lead">This turns the built-in LED on for 1 second, then off for 1 second — forever. It is the "Hello World" of hardware.
+          <span class="id">/ Menyalakan LED bawaan 1 detik, lalu mati 1 detik — terus-menerus.</span></p>
+        ${pointsList([
+          ['setup() runs once at the start','setup() berjalan sekali di awal'],
+          ['loop() repeats forever','loop() berulang selamanya'],
+          ['digitalWrite() sets a pin ON/OFF','digitalWrite() membuat pin ON/OFF'],
+          ['delay(1000) waits 1 second','delay(1000) menunggu 1 detik'],
+        ])}
+      </div>
+      <div class="code">
+        <div class="fname">blink.ino</div>
+        <pre><span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="num">13</span>, <span class="con">OUTPUT</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, <span class="con">HIGH</span>); <span class="cm">// ON</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);        <span class="cm">// 1s</span>
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, <span class="con">LOW</span>);  <span class="cm">// OFF</span>
+  <span class="fn">delay</span>(<span class="num">1000</span>);        <span class="cm">// 1s</span>
+}</pre>
+      </div>
+    </div>
+  </div></section>`;
+}
+
+function renderWiring(){
+  return `<section class="slide"><div class="card">
+    <div class="split">
+      <div>
+        <div class="headicon">${I.bolt}</div>
+        <div class="eyebrow"><span class="dot"></span>Lesson 8 · Praktik</div>
+        <h2 class="title">Wire it up</h2><div class="title-id id">Rangkai LED + resistor</div>
+        <p class="lead">Connect the parts in a loop, always passing through the resistor before the LED.
+          <span class="id">/ Sambungkan dalam lingkaran, selalu lewati resistor sebelum LED.</span></p>
+        ${pointsList([
+          ['Pin 13 → one leg of the resistor','Pin 13 → satu kaki resistor'],
+          ['Resistor → LED plus (+) leg','Resistor → kaki plus (+) LED'],
+          ['LED minus (–) → a GND pin','LED minus (–) → pin GND'],
+          ['Upload the code — it blinks!','Unggah kode — ia berkedip!'],
+        ])}
+      </div>
+      <div class="visual">
+        <svg viewBox="0 0 300 210" width="100%" style="max-width:360px">
+          <rect x="20" y="90" width="90" height="80" rx="10" fill="#0b7a72"/>
+          <text x="65" y="135" fill="#d7f5f1" font-size="12" font-weight="700" text-anchor="middle" font-family="'Space Grotesk',sans-serif">ARDUINO</text>
+          <text x="116" y="98" fill="#16233f" font-size="11" font-weight="700" font-family="monospace">Pin 13</text>
+          <text x="116" y="182" fill="#16233f" font-size="11" font-weight="700" font-family="monospace">GND</text>
+          <line x1="110" y1="105" x2="150" y2="105" stroke="#df5757" stroke-width="4"/>
+          <rect x="150" y="92" width="52" height="26" rx="5" fill="#d9a066" stroke="#8a5a2b" stroke-width="2"/>
+          <text x="176" y="110" fill="#5a3a1b" font-size="12" font-weight="700" text-anchor="middle">R</text>
+          <line x1="202" y1="105" x2="235" y2="105" stroke="#df5757" stroke-width="4"/>
+          <circle cx="255" cy="105" r="22" fill="#df5757" stroke="#9e2b2a" stroke-width="3"/>
+          <text x="255" y="70" fill="#16233f" font-size="11" font-weight="700" text-anchor="middle">LED</text>
+          <line x1="255" y1="127" x2="255" y2="160" stroke="#16233f" stroke-width="4"/>
+          <line x1="255" y1="160" x2="110" y2="160" stroke="#16233f" stroke-width="4"/>
+        </svg>
+      </div>
+    </div>
+  </div></section>`;
+}
+
+function renderResults(){
+  return `<section class="slide"><div class="results">
+    <div class="eyebrow" style="color:var(--amber);justify-content:center"><span class="dot"></span>Lesson complete · Selesai</div>
+    <h2>Great work! · Kerja bagus!</h2>
+    <div class="ring-wrap"><div class="ring">
+      <svg width="190" height="190">
+        <circle cx="95" cy="95" r="82" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="16"/>
+        <circle id="ringArc" class="rc" cx="95" cy="95" r="82" fill="none" stroke="#f5a623" stroke-width="16" stroke-linecap="round" stroke-dasharray="515" stroke-dashoffset="515"/>
+      </svg>
+      <div class="center"><div><div class="big" id="resScore">0</div><div class="sub" id="resPct">of ${MAX}</div></div></div>
+    </div></div>
+    <div class="level" id="resLevel">★ Great Start</div>
+    <p class="res-line" id="resMsg"></p>
+    <div class="recap">
+      <div>${I.tickTeal}You learned microcontrollers, circuits, resistors, LEDs &amp; pins</div>
+      <div>${I.tickTeal}You closed a real circuit and read your first Arduino code</div>
+      <div>${I.tickTeal}Kamu belajar rangkaian, resistor, LED, pin &amp; kode pertama</div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:26px" onclick="restart()">↺ Try again · Ulangi</button>
+  </div></section>`;
+}
+
+/* ============ MOUNT ============ */
+function mount(){
+  const root = document.getElementById('slides');
+  root.innerHTML='';
+  slides.forEach((s,idx)=>{
+    let html='';
+    if(s.type==='cover') html=renderCover();
+    else if(s.type==='content') html=renderContent(s);
+    else if(s.type==='circuit') html=renderCircuit();
+    else if(s.type==='quiz') html=renderQuiz(s,idx);
+    else if(s.type==='code') html=renderCode();
+    else if(s.type==='wiring') html=renderWiring();
+    else if(s.type==='results') html=renderResults();
+    root.appendChild(el(html));
+  });
+  document.getElementById('totNum').textContent = slides.length;
+  showSlide(0);
+}
+
+const nodes = ()=>document.querySelectorAll('.slide');
+function showSlide(i){
+  cur = Math.max(0, Math.min(slides.length-1, i));
+  nodes().forEach((n,idx)=>n.classList.toggle('active', idx===cur));
+  document.getElementById('curNum').textContent = cur+1;
+  document.getElementById('progress').style.width = (cur/(slides.length-1)*100)+'%';
+  document.getElementById('backBtn').disabled = cur===0;
+  document.getElementById('nextBtn').style.visibility = cur===slides.length-1 ? 'hidden':'visible';
+  if(slides[cur].type==='results') fillResults();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function go(d){ showSlide(cur+d); }
+
+/* ============ SCORING ============ */
+function addPoints(n){
+  score += n;
+  document.getElementById('scoreVal').textContent = score;
+  const chip = document.getElementById('scoreChip');
+  chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
+  const f = document.createElement('span');
+  f.className='float-pts'; f.textContent='+'+n;
+  chip.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+}
+
+/* ============ QUIZ LOGIC ============ */
+function answer(idx, choice, btn){
+  if(answered[idx]) return;
+  attempts[idx]=(attempts[idx]||0)+1;
+  const correct = btn.dataset.correct==='true';
+  const opts = btn.parentElement.querySelectorAll('.opt');
+  const fb = document.getElementById('fb'+idx);
+  if(correct){
+    answered[idx]=true;
+    btn.classList.add('correct','locked');
+    opts.forEach(o=>{ o.classList.add('locked'); if(o!==btn && o.dataset.correct!=='true') o.classList.add('dim'); });
+    // more points if right the first time, fewer after mistakes
+    const tries = attempts[idx];
+    const pts = tries===1 ? 100 : (tries===2 ? 50 : 20);
+    addPoints(pts);
+    fb.className='feedback ok show';
+    fb.querySelector('.fi').innerHTML = I.tick;
+    fb.querySelector('.fbtitle').textContent = 'Correct! +'+pts+' points — '+slides[idx].exp.en;
+  } else {
+    btn.classList.add('wrong','locked');
+    fb.className='feedback no show';
+    fb.querySelector('.fi').innerHTML = '!';
+    fb.querySelector('.fbtitle').textContent = 'Not quite — try again! · Coba lagi!';
+  }
+}
+
+/* ============ CIRCUIT TASK ============ */
+let circuitOn = false;
+function toggleCircuit(){
+  circuitOn = !circuitOn;
+  const arm = document.getElementById('swArm');
+  const bulb = document.getElementById('bulb');
+  const glow = document.getElementById('bulbGlow');
+  const status = document.getElementById('circStatus');
+  const hint = document.getElementById('circHint');
+  if(circuitOn){
+    arm.setAttribute('x2','75'); arm.setAttribute('y2','180'); arm.setAttribute('stroke','#1f9d67');
+    bulb.setAttribute('fill','#f5a623'); bulb.setAttribute('stroke','#cf8410'); glow.setAttribute('opacity','1');
+    status.className='status-tag on'; status.textContent='Circuit CLOSED · Tertutup — bulb ON!';
+    hint.textContent='The loop is complete — current flows! · Lingkaran lengkap — arus mengalir!';
+    if(!circuitDone){ circuitDone=true; addPoints(100); }
+  } else {
+    arm.setAttribute('x2','82'); arm.setAttribute('y2','158'); arm.setAttribute('stroke','#df5757');
+    bulb.setAttribute('fill','#d6dce6'); bulb.setAttribute('stroke','#aeb6c4'); glow.setAttribute('opacity','0');
+    status.className='status-tag off'; status.textContent='Circuit OPEN · Terbuka';
+    hint.textContent='Tap the button to close the loop · Tekan untuk menutup rangkaian';
+  }
+}
+
+/* ============ RESULTS ============ */
+function fillResults(){
+  const pct = Math.round(score/MAX*100);
+  const scoreEl = document.getElementById('resScore');
+  const arc = document.getElementById('ringArc');
+  const C = 515;
+  // animate count + ring
+  let shown=0; const target=score;
+  clearInterval(window._cnt);
+  window._cnt = setInterval(()=>{
+    shown += Math.max(1, Math.ceil(target/40));
+    if(shown>=target){ shown=target; clearInterval(window._cnt); }
+    scoreEl.textContent = shown;
+  }, 24);
+  setTimeout(()=>{ arc.style.strokeDashoffset = C - (C*Math.min(pct,100)/100); }, 120);
+
+  let level, msgEn, msgId, color;
+  if(pct>=90){ level='★ Circuit Master'; color='#f5a623'; msgEn='Outstanding! You understand electronics and code brilliantly.'; msgId='Luar biasa! Kamu memahami elektronika dan koding dengan sangat baik.'; }
+  else if(pct>=70){ level='★ Junior Engineer'; color='#f5a623'; msgEn='Excellent work! You are ready to build real Arduino projects.'; msgId='Kerja bagus! Kamu siap membangun proyek Arduino sungguhan.'; }
+  else if(pct>=50){ level='★ Rising Maker'; color='#5fe0d4'; msgEn='Nice job! You have grasped the basics — keep going!'; msgId='Bagus! Kamu sudah menguasai dasarnya — teruslah belajar!'; }
+  else { level='★ Great Start'; color='#5fe0d4'; msgEn='Good start! Review the slides and try the quizzes again to score higher.'; msgId='Awal yang bagus! Ulangi slide dan kuis untuk skor lebih tinggi.'; }
+
+  const lv = document.getElementById('resLevel');
+  lv.textContent = level; lv.style.background = color;
+  document.getElementById('resMsg').innerHTML = msgEn + '<br><span class="id">'+msgId+'</span>';
+  document.getElementById('resPct').textContent = 'of '+MAX+'  ·  '+pct+'%';
+}
+
+/* ============ RESTART ============ */
+function restart(){
+  score=0; circuitDone=false; circuitOn=false;
+  for(const k in answered) delete answered[k];
+  for(const k in attempts) delete attempts[k];
+  document.getElementById('scoreVal').textContent='0';
+  const arc=document.getElementById('ringArc'); if(arc) arc.style.strokeDashoffset=515;
+  mount();
+}
+
+/* ============ KEYBOARD ============ */
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight' && cur<slides.length-1) go(1);
+  if(e.key==='ArrowLeft' && cur>0) go(-1);
+});
+
+mount();
+</script>
+</body>
+</html>
